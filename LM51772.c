@@ -11,7 +11,7 @@
 void setILIM_THRESHOLD_Voltage(uint8_t I2CAddress, float ILIMVoltage){
     // Ensure the input value is inside the 5 to 70 mV range.
     if (ILIMVoltage < 5.0 || ILIMVoltage > 70.0){
-        fprintf(stderr, "Error: ILIMVoltage out of range. Must be between 5 and 70. %.2f was given.\n", ILIMVoltage);
+        fprintf(stderr, "Error: ILIMVoltage out of range. Must be between 5mV and 70mV. %.2f was given.\n", ILIMVoltage);
         return;
     }
     // Convert from float to equivalent value

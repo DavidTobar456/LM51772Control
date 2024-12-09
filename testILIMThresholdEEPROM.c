@@ -105,19 +105,9 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-uint16_t getOutputVoltageTarget(float divValue, float Vout){
-    float VRefF = (1/divValue)*Vout;
-    printf("Target voltage on FB hast to be %.2f V for a %.2f Output Voltage\n",VRefF,Vout);
-    uint16_t Vref = (uint16_t)(VRefF*1000.00);
-    printf("The value on the VOUT_TARGET1 registers has to be 0x%x to match this output\n",Vref);
-    if(Vref>4096){
-        float VoutMax = divValue*4096.00/1000;
-        printf("ERROR: Vout %.1f V to high for current configuration, maximum achievable voltage for a configuration with a divider value uf %.1f Ohms is %.1f V\n",Vout,divValue,VoutMax);
-        printf("Value for %.1f output is provided instead",VoutMax);
-        Vref = 4096;
-    }
-    printf("VOUT Target value for a %.2f output voltage is: %d\n",Vout,Vref);
-    return Vref;
+uint16_t getILIMThresholdVoltage(float ILIMThreshold, float Rshunt){
+    float ILIMThresholdmVolts = ILIMThreshold*Rshunt*1000.0;
+    return ILIMThresholdmVolts;
 }
 
 int main(int argc, char *argv[]){
@@ -129,10 +119,10 @@ int main(int argc, char *argv[]){
 
     // Parse input arguments
     uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    float Vout = atof(argv[2]);
-    printf("Input of a %.2f VOUT\n",Vout);
-    float divValue = atof(argv[3]);
-    printf("Input of a %.2f voltage divisor\n",divValue);
+    float ILIMThreshold = atof(argv[2]);
+    printf("Input of a %.2f A ILIM threshold\n",ILIMThreshold);
+    float Rshunt = atof(argv[3]);
+    printf("Input of a %.2f Ohms shunt resistor\n",Rshunt);
 
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
@@ -140,14 +130,8 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    // Calculate the value to be loaded
-    uint16_t Vref = getOutputVoltageTarget(divValue, Vout);
-    printf("\nLoading 0x%X into the VOUT_TARGET1 registers-->...\n",Vref);
-    // Set reference voltage
-    setVOUT1_TARGET(I2CAddress, Vref);
-    // Read loaded value to verify that the function works
-    uint16_t VoutReal = getVOUT1_TARGET(I2CAddress);
-    printf("\nValue of 0x%X currently loaded to VOUT_TARGET1 registers\n",VoutReal);
+    // Calculate ILIMThreshold in mV
+    
     // Do not delete
     gpioTerminate();
     return 0;
