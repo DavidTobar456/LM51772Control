@@ -7,7 +7,7 @@ extern void SoftwareDelay(uint8_t ms);                                          
 
 // I2C addressing definitions
 #define LM51772_I2CADDR1                0x6A
-#define LM51772_I2CADDR1                0x6B
+#define LM51772_I2CADDR2                0x6B
 
 // LM51772 register definitions     
 #define CLEAR_FAULTS                    0x3

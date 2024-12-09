@@ -59,11 +59,13 @@ float getILIM_THRESHOLD_Voltage(uint8_t I2CAddress){
 void setVOUT1_TARGET(uint8_t I2CAddress, uint16_t VoutTarget){
     // Separate VoutTarget on two separate bytes
     uint8_t VoutTargetMSB,VoutTargetLSB;
-    VoutTargetLSB = VoutTarget & 0xFF;
-    VoutTargetMSB = (VoutTarget >> 8) & 0x0F;
+    VoutTargetLSB = (uint8_t)(VoutTarget & 0xFF);
+    VoutTargetMSB = (uint8_t)((VoutTarget >> 8) & 0x0F);
     // Write VOUT_TARGET_LSB register
+    printf("Loading 0x%X to the VOUT_TARGET1_LSB register\n",VoutTargetLSB);
     I2C_WriteRegByte(I2CAddress,VOUT_TARGET1_LSB,VoutTargetLSB);
     // Write VOUT_TARGET_MSB register
+    printf("Loading 0x%X to the VOUT_TARGET1_MSB register\n\n",VoutTargetMSB);
     I2C_WriteRegByte(I2CAddress,VOUT_TARGET1_MSB,VoutTargetMSB);
 }
 
@@ -76,14 +78,17 @@ void setVOUT1_TARGET(uint8_t I2CAddress, uint16_t VoutTarget){
 *******************************************/
 uint16_t getVOUT1_TARGET(uint8_t I2CAddress){
     // Read LSB register
-    uint8_t VoutTargetMSB,VoutTargetLSB;
+    uint8_t VoutTargetLSB;
     VoutTargetLSB = I2C_ReadRegByte(I2CAddress,VOUT_TARGET1_LSB);
+    printf("\nRead 0x%X from the VOUT_TARGET1_LSB register\n",VoutTargetLSB);
     // Read MSB register
-    uint8_t VoutTargetMSB,VoutTargetLSB;
-    VoutTargetLSB = I2C_ReadRegByte(I2CAddress,VOUT_TARGET1_LSB);
+    uint8_t VoutTargetMSB;
+    VoutTargetMSB = I2C_ReadRegByte(I2CAddress,VOUT_TARGET1_MSB);
+    printf("Read 0x%X from the VOUT_TARGET1_MSB register\n",VoutTargetMSB);
     // Concat both registers to ouput the VOUT Target value
     uint16_t VoutTarget;
     VoutTarget = ((VoutTargetMSB&0x0F)<<8)|VoutTargetLSB;
+    // printf("Vout target return value 0x%X\n",VoutTarget);
     // Return VoutTarget
     return VoutTarget;
 }
