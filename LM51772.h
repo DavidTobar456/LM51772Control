@@ -54,7 +54,7 @@ extern void SoftwareDelay(uint8_t ms);                                          
 
 // Function definitions
 // Functions for ILIM_THRESHOLD modifications
-void setILIM_THRESHOLD_Voltage(uint8_t I2CAddress, float ILIMVoltage);
+void setILIM_THRESHOLD_Voltage(uint8_t I2CAddress, uint16_t ILIMmAmps);
 float getILIM_THRESHOLD_Voltage(uint8_t I2CAddress);
 // Functions for VOUT_TARGET1 registers
 // Setting of the VOUT target

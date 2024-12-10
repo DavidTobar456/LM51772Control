@@ -8,16 +8,18 @@
 * @note: Sets the ILIM_THRESHOLD register value to match the ILIMVoltage
 *        provided by the user.
 *******************************************/
-void setILIM_THRESHOLD_Voltage(uint8_t I2CAddress, float ILIMVoltage){
+void setILIM_THRESHOLD_Voltage(uint8_t I2CAddress, uint16_t ILIMmAmps){
     // Ensure the input value is inside the 5 to 70 mV range.
-    if (ILIMVoltage < 5.0 || ILIMVoltage > 70.0){
-        fprintf(stderr, "Error: ILIMVoltage out of range. Must be between 5mV and 70mV. %.2f was given.\n", ILIMVoltage);
+    if (ILIMmAmps < 500 || ILIMmAmps > 7000){
+        fprintf(stderr, "Error: ILIM out of range. Must be between 500 and 7000mA. %d was given.\n", ILIMmAmps);
         return;
     }
     // Convert from float to equivalent value
     uint8_t ilimValue; 
-    ilimValue = (uint8_t)(2*ILIMVoltage);
+    ilimValue = (uint8_t)(ILIMmAmps/50);
     // Write the equivalent value to the ILIM_THRESHOLD register
+    float ILIMAmps = ILIMmAmps/1000.0;
+    printf("Now writing 0x%X in the ILIM_THRESHOLD register to get a %.2f A current limit\n",ilimValue,ILIMAmps);
     I2C_WriteRegByte(I2CAddress, ILIM_THRESHOLD, ilimValue);
 }
 
