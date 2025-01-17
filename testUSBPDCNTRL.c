@@ -105,31 +105,38 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
-    }
-
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    // Enable force discharge
+    I2C_WriteRegByte(SLAVE_ADDRESS, USB_PD_CONTROL_0, 0x00);
+    uint8_t regValue = I2C_ReadRegByte(SLAVE_ADDRESS, USB_PD_CONTROL_0);
+    printf("USB_PD_CONTROL_0 after RESET: 0x%02X\n", regValue);
+    ForceDischargeEnable(SLAVE_ADDRESS);
+    regValue = I2C_ReadRegByte(SLAVE_ADDRESS, USB_PD_CONTROL_0);
+    printf("USB_PD_CONTROL_0 after enabling force discharge: 0x%02X\n", regValue);
 
+    // Disable force discharge
+    ForceDischargeDisable(SLAVE_ADDRESS);
+    regValue = I2C_ReadRegByte(SLAVE_ADDRESS, USB_PD_CONTROL_0);
+    printf("USB_PD_CONTROL_0 after disabling force discharge: 0x%02X\n", regValue);
+
+    // Enable power stage
+    EnablePowerStage(SLAVE_ADDRESS);
+    regValue = I2C_ReadRegByte(SLAVE_ADDRESS, USB_PD_CONTROL_0);
+    printf("USB_PD_CONTROL_0 after enabling power stage: 0x%02X\n", regValue);
+
+    // Disable power stage
+    DisablePowerStage(SLAVE_ADDRESS);
+    regValue = I2C_ReadRegByte(SLAVE_ADDRESS, USB_PD_CONTROL_0);
+    printf("USB_PD_CONTROL_0 after disabling power stage: 0x%02X\n", regValue);
+
+    // Terminate the pigpio library
     gpioTerminate();
+
     return 0;
 }

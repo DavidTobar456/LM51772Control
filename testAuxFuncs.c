@@ -1,9 +1,9 @@
-#include "LM51772.h"
 #include <pigpio.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "aux.h"
 
 #define I2C_BUS 5
 #define SLAVE_ADDRESS 0x50
@@ -105,31 +105,50 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
+// Function to test setting and clearing bits 0-7
+void testBitOperations(uint8_t I2CAddress, uint8_t Reg) {
+    for (uint8_t bit = 0; bit < 8; ++bit) {
+        switch (bit) {
+            case 0: setBit0(I2CAddress, Reg); break;
+            case 1: setBit1(I2CAddress, Reg); break;
+            case 2: setBit2(I2CAddress, Reg); break;
+            case 3: setBit3(I2CAddress, Reg); break;
+            case 4: setBit4(I2CAddress, Reg); break;
+            case 5: setBit5(I2CAddress, Reg); break;
+            case 6: setBit6(I2CAddress, Reg); break;
+            case 7: setBit7(I2CAddress, Reg); break;
+        }
+        uint8_t regContent = I2C_ReadRegByte(I2CAddress, Reg);
+        printf("\nAfter setting bit %d: 0x%02X\n", bit, regContent);
+
+        switch (bit) {
+            case 0: clearBit0(I2CAddress, Reg); break;
+            case 1: clearBit1(I2CAddress, Reg); break;
+            case 2: clearBit2(I2CAddress, Reg); break;
+            case 3: clearBit3(I2CAddress, Reg); break;
+            case 4: clearBit4(I2CAddress, Reg); break;
+            case 5: clearBit5(I2CAddress, Reg); break;
+            case 6: clearBit6(I2CAddress, Reg); break;
+            case 7: clearBit7(I2CAddress, Reg); break;
+        }
+        regContent = I2C_ReadRegByte(I2CAddress, Reg);
+        printf("After clearing bit %d: 0x%02X\n", bit, regContent);
     }
+}
 
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    uint8_t I2CAddress = 0x50; // Example I2C address
+    uint8_t Reg = 0x01; // Example register address
+    I2C_WriteRegByte(I2CAddress,Reg,0x00);
+    testBitOperations(I2CAddress, Reg);
 
+    // Do not delete
     gpioTerminate();
     return 0;
 }

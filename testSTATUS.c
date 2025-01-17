@@ -105,31 +105,33 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
-    }
-
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    // Clear all faults
+    ClearFaults(SLAVE_ADDRESS);
+    uint8_t statusByte = I2C_ReadRegByte(SLAVE_ADDRESS, STATUS_BYTE);
+    printf("STATUS_BYTE after clearing faults: 0x%02X\n", statusByte);
 
+    // Check specific fault flags
+    uint8_t faultFlags[] = {FLT_OTHER, FLT_CML, FLT_TEMPERATURE, FLT_IVP, FLT_OCP, FLT_OVP, FLT_OFF, FLT_BUSY};
+    const char* faultNames[] = {"OTHER", "CML", "TEMPERATURE", "IVP", "OCP", "OVP", "OFF", "BUSY"};
+
+    for (int i = 0; i < sizeof(faultFlags) / sizeof(faultFlags[0]); ++i) {
+        ClearFaultFlag(SLAVE_ADDRESS, faultFlags[i]);
+        statusByte = I2C_ReadRegByte(SLAVE_ADDRESS, STATUS_BYTE);
+        printf("STATUS_BYTE after clearing %s fault: 0x%02X\n", faultNames[i], statusByte);
+    }
+    ClearFaultFlag(SLAVE_ADDRESS, FLT_OVP|FLT_IVP|FLT_OCP);
+    statusByte = I2C_ReadRegByte(SLAVE_ADDRESS, STATUS_BYTE);
+    printf("STATUS_BYTE after clearing OVP, IVP and OCP fault: 0x%02X\n",statusByte);
+
+    // Terminate the pigpio library
     gpioTerminate();
+
     return 0;
 }

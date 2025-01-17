@@ -105,31 +105,86 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
-    }
-
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    // THE TESTS GO HERE    
+    // Test EnablePowerStage
+    I2C_WriteRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0, 0x00);
+    uint8_t value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after Resetting: 0x%02X\n", value);
+    EnablePowerStage(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after EnablePowerStage: 0x%02X\n", value);
 
+    // Test DisablePowerStage
+    DisablePowerStage(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after DisablePowerStage: 0x%02X\n", value);
+
+    // Test uSleep_Enable
+    uSleep_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after uSleep_Enable: 0x%02X\n", value);
+
+    // Test uSleep_Disable
+    uSleep_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after uSleep_Disable: 0x%02X\n", value);
+
+    // Test DRSS_Enable
+    DRSS_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after DRSS_Enable: 0x%02X\n", value);
+
+    // Test DRSS_Disable
+    DRSS_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after DRSS_Disable: 0x%02X\n", value);
+
+    // Test HiccupProtection_Enable
+    HiccupProtection_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after HiccupProtection_Enable: 0x%02X\n", value);
+
+    // Test HiccupProtection_Disable
+    HiccupProtection_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after HiccupProtection_Disable: 0x%02X\n", value);
+
+    // Test CurrentLimiter_Enable
+    CurrentLimiter_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after CurrentLimiter_Enable: 0x%02X\n", value);
+
+    // Test CurrentLimiter_Disable
+    CurrentLimiter_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after CurrentLimiter_Disable: 0x%02X\n", value);
+
+    // Test Vcc1LDO_Enable
+    Vcc1LDO_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after Vcc1LDO_Enable: 0x%02X\n", value);
+    Vcc1LDO_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after Vcc1LDO_Disable: 0x%02X\n", value);
+
+    // Test NegativeCurrentLimiting_Enable
+    NegativeCurrentLimiting_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after NegativeCurrentLimiting_Enable: 0x%02X\n", value);
+
+    // Test NegativeCurrentLimiting_Disable
+    NegativeCurrentLimiting_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D0);
+    printf("Read value after NegativeCurrentLimiting_Disable: 0x%02X\n", value);
+
+    // Do not delete
     gpioTerminate();
     return 0;
 }

@@ -105,31 +105,30 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
-    }
-
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    // Set IVP voltage threshold to 5000 mV
+    IVP_VoltageThreshold_Configure(SLAVE_ADDRESS, 5000);
+    uint8_t regValue = I2C_ReadRegByte(SLAVE_ADDRESS, IVP_VOLTAGE);
+    printf("IVP_VOLTAGE after setting to 5000 mV: 0x%02X\n", regValue);
 
+    // Set IVP voltage threshold to 10000 mV
+    IVP_VoltageThreshold_Configure(SLAVE_ADDRESS, 10000);
+    regValue = I2C_ReadRegByte(SLAVE_ADDRESS, IVP_VOLTAGE);
+    printf("IVP_VOLTAGE after setting to 10000 mV: 0x%02X\n", regValue);
+
+    // Set IVP voltage threshold to 20000 mV
+    IVP_VoltageThreshold_Configure(SLAVE_ADDRESS, 33400);
+    regValue = I2C_ReadRegByte(SLAVE_ADDRESS, IVP_VOLTAGE);
+    printf("IVP_VOLTAGE after setting to 33400 mV: 0x%02X\n", regValue);
+
+    // Terminate the pigpio library
     gpioTerminate();
+
     return 0;
 }

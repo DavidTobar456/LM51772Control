@@ -105,31 +105,77 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
-    }
-
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    // Test Discharge_VTH_Enable
+    I2C_WriteRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2, 0x00);
+    uint8_t value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after RESET: 0x%02X\n", value);
+    Discharge_VTH_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after Discharge_VTH_Enable: 0x%02X\n", value);
 
+    // Test Discharge_VTH_Disable
+    Discharge_VTH_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after Discharge_VTH_Disable: 0x%02X\n", value);
+
+    // Test Discharge_Enable
+    Discharge_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after Discharge_Enable: 0x%02X\n", value);
+
+    // Test Discharge_Disable
+    Discharge_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after Discharge_Disable: 0x%02X\n", value);
+
+    // Test Dishcarge_StrengthConfigure with different strengths
+    Dishcarge_StrengthConfigure(SLAVE_ADDRESS, DISCHG_STRENGTH_25mA);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after Dishcarge_StrengthConfigure (25mA): 0x%02X\n", value);
+
+    Dishcarge_StrengthConfigure(SLAVE_ADDRESS, DISCHG_STRENGTH_50mA);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after Dishcarge_StrengthConfigure (50mA): 0x%02X\n", value);
+
+    Dishcarge_StrengthConfigure(SLAVE_ADDRESS, DISCHG_STRENGTH_75mA);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after Dishcarge_StrengthConfigure (75mA): 0x%02X\n", value);
+
+    // Test DVS_SlewrateConfigure with different slewrates
+    DVS_SlewrateConfigure(SLAVE_ADDRESS, DVS_SLEW_40mV_us);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after DVS_SlewrateConfigure (40mV/us): 0x%02X\n", value);
+
+    DVS_SlewrateConfigure(SLAVE_ADDRESS, DVS_SLEW_20mV_us);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after DVS_SlewrateConfigure (20mV/us): 0x%02X\n", value);
+
+    DVS_SlewrateConfigure(SLAVE_ADDRESS, DVS_SLEW_1mV_us);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after DVS_SlewrateConfigure (1mV/us): 0x%02X\n", value);
+
+    DVS_SlewrateConfigure(SLAVE_ADDRESS, DVS_SLEW_0_5mV_us);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after DVS_SlewrateConfigure (0.5mV/us): 0x%02X\n", value);
+
+    // Test DVS_ActiveDownRamp_Enable
+    DVS_ActiveDownRamp_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after DVS_ActiveDownRamp_Enable: 0x%02X\n", value);
+
+    // Test DVS_ActiveDownRamp_Disable
+    DVS_ActiveDownRamp_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D2);
+    printf("Read value after DVS_ActiveDownRamp_Disable: 0x%02X\n", value);
+
+    // Do not delete
     gpioTerminate();
     return 0;
 }

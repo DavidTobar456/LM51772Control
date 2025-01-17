@@ -105,38 +105,24 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-uint16_t getILIMThresholdValue(float ILIMThreshold, float Rshunt){
-    float ILIMThresholdmAmpsF = ILIMThreshold*1000.0;
-    printf("ILIM threshold in mA: %.2f as a float\n",ILIMThresholdmAmpsF);
-    uint16_t ILIMThresholdmAmps = (uint16_t)(ILIMThresholdmAmpsF);
-    return ILIMThresholdmAmps;
-}
-
 int main(int argc, char *argv[]){
     // Check if the correct number of arguments is provided
-    if (argc != 4) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <ILIM Threshold in Amps> <RShunt in Ohms>\n", argv[0]);
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <I2CAddress> <ILIM Threshold in mAmps>\n", argv[0]);
         return 1;
     }
 
     // Parse input arguments
     uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    float ILIMThreshold = atof(argv[2]);
-    printf("Input of a %.2f A ILIM threshold\n",ILIMThreshold);
-    float Rshunt = atof(argv[3]);
-    printf("Input of a %.2f Ohms shunt resistor\n",Rshunt);
-
+    float ILIMThreshold = atoi(argv[2]);
+    printf("Input of a %d mA ILIM threshold\n",ILIMThreshold);
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
-
-    // Calculate ILIMThreshold in mV
-    uint16_t ILIMThresholdmAmps = getILIMThresholdValue(ILIMThreshold,Rshunt);
-    printf("ILIM Threshold in mA is: %d\n",ILIMThresholdmAmps);
     // Write the ILIM on the ILIM_THRESHOLD register
-    setILIM_THRESHOLD_Voltage(I2CAddress,ILIMThresholdmAmps);
+    setILIM_THRESHOLD(I2CAddress,ILIMThreshold);
     // Verify the value written
     uint8_t ILIM_realValue = I2C_ReadRegByte(I2CAddress,ILIM_THRESHOLD);
     printf("\nRead 0x%X from the ILIM_THRESHOLD register\n",ILIM_realValue);

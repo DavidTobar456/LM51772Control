@@ -105,31 +105,59 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
-    }
-
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    // Test PCM_LowerVoltageWindow_Configure with different dimensionless values
+    I2C_WriteRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9, 0x00);
+    uint8_t value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after RESET: 0x%02X\n", value);
+    PCM_LowerVoltageWindow_Configure(SLAVE_ADDRESS, 0);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after PCM_LowerVoltageWindow_Configure (0): 0x%02X\n", value);
 
+    PCM_LowerVoltageWindow_Configure(SLAVE_ADDRESS, 387);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after PCM_LowerVoltageWindow_Configure (387): 0x%02X\n", value);
+
+    PCM_LowerVoltageWindow_Configure(SLAVE_ADDRESS, 775);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after PCM_LowerVoltageWindow_Configure (775): 0x%02X\n", value);
+
+    // Test PCM_LowerVoltageWindow_ConfigureF with different percentage values
+    I2C_WriteRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9, 0x00);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after RESET: 0x%02X\n", value);
+    PCM_LowerVoltageWindow_ConfigureF(SLAVE_ADDRESS, 0.0);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after PCM_LowerVoltageWindow_ConfigureF (0.0%%): 0x%02X\n", value);
+
+    PCM_LowerVoltageWindow_ConfigureF(SLAVE_ADDRESS, 38.75);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after PCM_LowerVoltageWindow_ConfigureF (38.75%%): 0x%02X\n", value);
+
+    PCM_LowerVoltageWindow_ConfigureF(SLAVE_ADDRESS, 77.5);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after PCM_LowerVoltageWindow_ConfigureF (77.5%%): 0x%02X\n", value);
+
+    // Test OCP_ISET_OverILIM_Enable
+    I2C_WriteRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9, 0x00);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after RESET: 0x%02X\n", value);
+    OCP_ISET_OverILIM_Enable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after OCP_ISET_OverILIM_Enable: 0x%02X\n", value);
+
+    // Test OCP_ISET_OverILIM_Disable
+    OCP_ISET_OverILIM_Disable(SLAVE_ADDRESS);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D9);
+    printf("Read value after OCP_ISET_OverILIM_Disable: 0x%02X\n", value);
+
+    // Do not delete
     gpioTerminate();
     return 0;
 }

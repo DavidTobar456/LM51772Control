@@ -105,31 +105,64 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
-    }
-
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    // Test SlopeComp_CorrectionFactor_Select with all possible values
+    struct {
+        uint8_t value;
+        const char* description;
+    } correctionFactors[] = {
+        {SLOPECOMP_CORRECTION_0_125, "0.125"},
+        {SLOPECOMP_CORRECTION_0_25, "0.25"},
+        {SLOPECOMP_CORRECTION_0_375, "0.375"},
+        {SLOPECOMP_CORRECTION_0_5, "0.5"},
+        {SLOPECOMP_CORRECTION_0_625, "0.625"},
+        {SLOPECOMP_CORRECTION_0_75, "0.75"},
+        {SLOPECOMP_CORRECTION_0_875, "0.875"},
+        {SLOPECOMP_CORRECTION_1_0, "1.0"},
+        {SLOPECOMP_CORRECTION_1_5, "1.5"},
+        {SLOPECOMP_CORRECTION_2_0, "2.0"},
+        {SLOPECOMP_CORRECTION_2_5, "2.5"},
+        {SLOPECOMP_CORRECTION_3_0, "3.0"},
+        {SLOPECOMP_CORRECTION_3_5, "3.5"},
+        {SLOPECOMP_CORRECTION_4_0, "4.0"},
+        {SLOPECOMP_CORRECTION_4_5, "4.5"},
+        {SLOPECOMP_CORRECTION_5_0, "5.0"}
+    };
 
+    I2C_WriteRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D7, 0x00);
+    uint8_t value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D7);
+    printf("Read value after RESET: 0x%02X\n", value);
+
+    for (int i = 0; i < sizeof(correctionFactors) / sizeof(correctionFactors[0]); i++) {
+        SlopeComp_CorrectionFactor_Select(SLAVE_ADDRESS, correctionFactors[i].value);
+        value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D7);
+        printf("Read value after SlopeComp_CorrectionFactor_Select (%s): 0x%02X\n", correctionFactors[i].description, value);
+    }
+
+    // Test SlopeComp_InductorDerating_Select with different derating values
+    SlopeComp_InductorDerating_Select(SLAVE_ADDRESS, INDUC_DERATE_DISABLE);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D7);
+    printf("Read value after SlopeComp_InductorDerating_Select (Disable): 0x%02X\n", value);
+
+    SlopeComp_InductorDerating_Select(SLAVE_ADDRESS, INDUC_DERATE_20);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D7);
+    printf("Read value after SlopeComp_InductorDerating_Select (20): 0x%02X\n", value);
+
+    SlopeComp_InductorDerating_Select(SLAVE_ADDRESS, INDUC_DERATE_30);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D7);
+    printf("Read value after SlopeComp_InductorDerating_Select (30): 0x%02X\n", value);
+
+    SlopeComp_InductorDerating_Select(SLAVE_ADDRESS, INDUC_DERATE_40);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D7);
+    printf("Read value after SlopeComp_InductorDerating_Select (40): 0x%02X\n", value);
+
+    // Do not delete
     gpioTerminate();
     return 0;
 }

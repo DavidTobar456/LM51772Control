@@ -105,31 +105,30 @@ void SoftwareDelay(uint8_t ms){
     usleep(ms*1000);
 }
 
-int main(int argc, char *argv[]){
-    // Check if the correct number of arguments is provided
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <I2CAddress> <Vout in mV>\n", argv[0]);
-        return 1;
-    }
-
-    // Parse input arguments
-    uint8_t I2CAddress = (uint8_t)strtol(argv[1], NULL, 0);
-    int Vout = atoi(argv[2]);
-    printf("Input of a %d mV VOUT\n",Vout);
-
+int main() {
     // Initialize the pigpio library
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
 
-    // Set the VOUT target
-    printf("Setting VOUT target to %d mV\n",Vout);
-    setVOUT1_TARGET(I2CAddress,Vout);
-    // Reading the VOUT target to verify
-    uint16_t VoutTarget = getVOUT1_TARGET(I2CAddress);
-    printf("VOUT_TARGET1 register value set to %d\n",VoutTarget);
+    // Test VDET_RisingThresholdConfigure with different thresholds
+    I2C_WriteRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D4, 0x00);
+    uint8_t value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D4);
+    printf("Read value after RESET: 0x%02X\n", value);
+    VDET_RisingThresholdConfigure(SLAVE_ADDRESS, 2800);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D4);
+    printf("Read value after VDET_RisingThresholdConfigure (2800mV): 0x%02X\n", value);
 
+    VDET_RisingThresholdConfigure(SLAVE_ADDRESS, 5000);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D4);
+    printf("Read value after VDET_RisingThresholdConfigure (5000mV): 0x%02X\n", value);
+
+    VDET_RisingThresholdConfigure(SLAVE_ADDRESS, 9000);
+    value = I2C_ReadRegByte(SLAVE_ADDRESS, MFR_SPECIFIC_D4);
+    printf("Read value after VDET_RisingThresholdConfigure (9000mV): 0x%02X\n", value);
+
+    // Do not delete
     gpioTerminate();
     return 0;
 }
