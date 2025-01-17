@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "aux.h"
+#include "auxlib.h"
 
 #define I2C_BUS 5
 #define SLAVE_ADDRESS 0x50
