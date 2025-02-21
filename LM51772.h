@@ -40,11 +40,16 @@ extern void SoftwareDelay(uint8_t ms);                                          
 #define VOUT_MSB_RMASK                  0x07
 #define VOUT_MSB_WMASK                  0x07
 // Different types of feedback divider configurations
-# define FB_INTERNAL20                  1
-# define FB_INTERNAL10                  2
-# define FB_EXTERNAL                    3
+#define FB_INTERNAL20                   1
+#define FB_INTERNAL10                   2
+#define FB_EXTERNAL                     3
 //-------CHANGE TO SELECT THE FB DIVIDER CONFIGURATION---------//
-# define FB_DIVIDER_CONFIG               FB_INTERNAL20
+#define FB_DIVIDER_CONFIG               FB_INTERNAL20
+#if FB_DIVIDER_CONFIG == FB_EXTERNAL
+    // External resistors values
+#define Rbot                            1000 // Value in Ohms
+#define Rtop                            1000 // Value in Ohms
+#endif
 
 // LM51772 - STATUS_BYTE auxiliary definitions
 // Fault/Interrupt flags

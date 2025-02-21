@@ -56,6 +56,9 @@ void setILIM_THRESHOLD(uint8_t I2CAddress, uint16_t ILIMmAmps){
 *           - FB_INTERNAL20
 *           - FB_INTERNAL10
 *           - FB_EXTERNAL
+*        The external configuration requires the definition of the top and
+*        bottom resistors used in the voltage divider, which are defined in
+*        the LM51772.h file as Rbot and Rtop respectively.
 *******************************************/
 void setVOUT1_TARGET(uint8_t I2CAddress, uint16_t Vout){
     #if FB_DIVIDER_CONFIG == FB_INTERNAL20
@@ -67,7 +70,9 @@ void setVOUT1_TARGET(uint8_t I2CAddress, uint16_t Vout){
         // VoutTarget = Vout/10
         uint16_t VoutTarget = Vout/10;
     #elif FB_DIVIDER_CONFIG == FB_EXTERNAL
-        uint16_t VoutTarget = Vout;
+        // When the FB divider is set with external resistors
+        // VoutTarget = Vout*(Rbot/(Rbot+Rtop))
+        uint16_t VoutTarget = Vout*(Rbot/(Rbot+Rtop));
     #else
         #error "FB_DIVIDER_CONFIG not defined"
     #endif
